@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en-us">
+<head>
+  <title>speech</title>
+  <meta charset="UTF-8"> 
+  <!--
+  <link rel="stylesheet" type="text/css" href="./styles/index.css">
+  <link rel="stylesheet" type="text/css" href="./scripts/tabulator-tables/dist/css/tabulator.min.css">
+
+  <script defer src="./scripts/file-saver/dist/FileSaver.js"></script>
+  <script defer src="./scripts/tabulator-tables/dist/js/tabulator.min.js"></script>
+  <script defer src="./scripts/plotly.js-dist/plotly.js"></script>
+  <script defer type="module" src="scripts/index.js"></script>
+  -->
+</head>
+<style>
+  ul.btns{
+    display: flex;
+  }
+  button.btn{
+    width: 300px;
+    height: 100px;
+    margin: 50px;
+    font-size: 36px;
+  }
+  div.message{
+    border-left: 2px solid black;
+    border-right: 2px solid black;
+    margin: 10px;
+    padding: 10px;
+    font-size: 24px;
+    height: 200px;
+  }
+</style>
+<body>
+  <ul class="btns">
+    <button id="start-btn" class="btn">record</button>
+    <button id="stop-btn" class="btn">stop</button>
+    <button id="clear-btn" class="btn">clear</button>
+    <button id="speak-btn" class="btn">repeat</button>
+  </ul>
+  <div id="result-div" class="message"></div>
+</body>
+<script>
+  const startBtn = document.querySelector('#start-btn');
+  const stopBtn = document.querySelector('#stop-btn');
+  const clearBtn = document.querySelector('#clear-btn');
+  const speakBtn = document.querySelector('#speak-btn');
+  const resultDiv = document.querySelector('#result-div');
+
+  SpeechRecognition = webkitSpeechRecognition || SpeechRecognition;
+  let recognition = new SpeechRecognition()
+
+  recognition.lang = 'ja-JP'
+  recognition.interimResults = true 
+  recognition.continuous = true 
+  recognition.maxAlternatives = 1
+
+  let finalTranscript = '' // 確定した(黒の)認識結果
+
+  recognition.onresult = (event) => {
+    let interimTranscript = '' // 暫定(灰色)の認識結果
+    const index = event.results.length-1
+    const transcript = event.results[index][0].transcript
+    const isFinal = event.results[index].isFinal
+    if(isFinal) {
+      finalTranscript += (transcript + "<br>")
+    }
+    else {
+      interimTranscript = transcript
+    }
+    
+
+//    for (let i = event.resultIndex; i < event.results.length; i++) {
+//      let transcript = event.results[i][0].transcript;
+//      if (event.results[i].isFinal) {
+//        finalTranscript += (transcript +"<br>")
+//      }
+//      else {
+//        interimTranscript = transcript;
+//      }
+//    }
+    console.log(event)
+    resultDiv.innerHTML = finalTranscript + `<i style="color:#ddd;"> ${interimTranscript} </i>`
+  }
+
+  startBtn.onclick = () => {
+   const uttr = new SpeechSynthesisUtterance("Please speak a message in Japanese.")
+   uttr.lang = "en-US"
+   speechSynthesis.speak(uttr)
+ 
+    recognition.start()
+  }
+  stopBtn.onclick = () => {
+    recognition.stop()
+  }
+  clearBtn.onclick = () => {
+    resultDiv.innerHTML = "" 
+    finalTranscript = ""
+  }
+  speakBtn.onclick = () => {
+    const text = resultDiv.innerHTML
+    const speech = text.split("<br>")
+    speech.forEach(v=>{
+      const uttr = new SpeechSynthesisUtterance(v)
+      uttr.lang = "ja-JP"
+      speechSynthesis.speak(uttr)
+    })
+  }
+
+  console.log(recognition)
+  resultDiv.innerHTML = "please speak a message."
+  
+ 
+</script>
+</html>
