@@ -3,17 +3,20 @@
 <head>
   <title>speech</title>
   <meta charset="UTF-8"> 
-  <!--
-  <link rel="stylesheet" type="text/css" href="./styles/index.css">
-  <link rel="stylesheet" type="text/css" href="./scripts/tabulator-tables/dist/css/tabulator.min.css">
-
-  <script defer src="./scripts/file-saver/dist/FileSaver.js"></script>
-  <script defer src="./scripts/tabulator-tables/dist/js/tabulator.min.js"></script>
-  <script defer src="./scripts/plotly.js-dist/plotly.js"></script>
-  <script defer type="module" src="scripts/index.js"></script>
-  -->
 </head>
 <style>
+  header {
+    border-bottom: 3px solid #CC33FF;
+  }
+
+  header > h1 {
+  color: #3e5358;
+    font-size: 32px;
+  }
+  .menu {
+    margin: 5px;
+    padding: 5px;
+  }
   ul.btns{
     display: flex;
   }
@@ -33,6 +36,21 @@
   }
 </style>
 <body>
+  <header>
+    <h1>SPEECH</h1>
+  </header>
+  <div class="menu">
+    <select id="example">
+      <option value="Japanese" selected>Japanese</option>
+      <option value="English">English</option>
+      <option value="Chinese">Chinese</option>
+      <option value="Spanish">Spanish</option>
+      <option value="French">French</option>
+      <option value="German">German</option>
+      <option value="Italian">Italian</option>
+    </select>
+  <div>
+
   <ul class="btns">
     <button id="start-btn" class="btn">record</button>
     <button id="stop-btn" class="btn">stop</button>
@@ -42,13 +60,33 @@
   <div id="result-div" class="message"></div>
 </body>
 <script>
-  const startBtn = document.querySelector('#start-btn');
-  const stopBtn = document.querySelector('#stop-btn');
-  const clearBtn = document.querySelector('#clear-btn');
-  const speakBtn = document.querySelector('#speak-btn');
-  const resultDiv = document.querySelector('#result-div');
+  const select = document.getElementById('example')
+  const startBtn = document.querySelector('#start-btn')
+  const stopBtn = document.querySelector('#stop-btn')
+  const clearBtn = document.querySelector('#clear-btn')
+  const speakBtn = document.querySelector('#speak-btn')
+  const resultDiv = document.querySelector('#result-div')
 
-  SpeechRecognition = webkitSpeechRecognition || SpeechRecognition;
+  const langMap = new Map([
+    ["Japanese", "ja-JP"],
+    ["English", "en-US"],
+    ["Chinese", "zh-CN"],
+    ["Spanish", "es-ES"],
+    ["French", "fr-FR"],
+    ["German", "de-DE"],
+    ["Italian", "it-IT"],
+  ])
+  const messageMap = new Map([
+    ["Japanese", "Please speak a message in Japanese."],
+    ["English", "Please speak a message in English."],
+    ["Chinese", "Please speak a message in Chinese."],
+    ["Spanish", "Please speak a message in Spanish."],
+    ["French", "Please speak a message in French."],
+    ["German", "Please speak a message in German."],
+    ["Italian", "Please speak a message in Italian."],
+  ])
+
+  SpeechRecognition = webkitSpeechRecognition || SpeechRecognition
   let recognition = new SpeechRecognition()
 
   recognition.lang = 'ja-JP'
@@ -69,45 +107,50 @@
     else {
       interimTranscript = transcript
     }
-    
 
-//    for (let i = event.resultIndex; i < event.results.length; i++) {
-//      let transcript = event.results[i][0].transcript;
-//      if (event.results[i].isFinal) {
-//        finalTranscript += (transcript +"<br>")
-//      }
-//      else {
-//        interimTranscript = transcript;
-//      }
-//    }
     console.log(event)
     resultDiv.innerHTML = finalTranscript + `<i style="color:#ddd;"> ${interimTranscript} </i>`
   }
 
   startBtn.onclick = () => {
-   const uttr = new SpeechSynthesisUtterance("Please speak a message in Japanese.")
-   uttr.lang = "en-US"
-   speechSynthesis.speak(uttr)
+    recognition.stop()
+    const value = select.value
+    const message= messageMap.get(value)
+ 
+    const uttr = new SpeechSynthesisUtterance(message)
+    uttr.lang = "en-US" 
+    speechSynthesis.speak(uttr)
  
     recognition.start()
   }
+
   stopBtn.onclick = () => {
     recognition.stop()
   }
+
   clearBtn.onclick = () => {
     resultDiv.innerHTML = "" 
     finalTranscript = ""
   }
+
   speakBtn.onclick = () => {
     const text = resultDiv.innerHTML
     const speech = text.split("<br>")
     speech.forEach(v=>{
       const uttr = new SpeechSynthesisUtterance(v)
-      uttr.lang = "ja-JP"
+      const value = select.value
+      const lang = langMap.get(value)
+ 
+      uttr.lang = lang 
       speechSynthesis.speak(uttr)
     })
   }
 
+  select.onchange = (e) => {
+    const value = select.value
+    const lang = langMap.get(value)
+    recognition.lang = lang 
+  }
   console.log(recognition)
   resultDiv.innerHTML = "please speak a message."
   
